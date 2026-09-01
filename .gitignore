@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Google OAuth credentials
+client_secret*.json
+*credentials*.json
+google-oauth*.json
+
+# Build
+dist/
+build/
+
+# Uploads (local dev)
+backend/uploads/profiles/*
+backend/uploads/documents/*
+!backend/uploads/profiles/.gitkeep
+!backend/uploads/documents/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Test coverage
+coverage/
+
+# Docker
+*.pid
+
+.env
+*.envbackend/.env
+frontend/.env

@@ -1,0 +1,114 @@
+{
+  "info": {
+    "name": "Service Provider Onboarding Portal",
+    "description": "Complete API collection for the Service Provider Onboarding Portal",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "token", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "providerToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Provider",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Provider\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"9876543210\",\n  \"password\": \"Test@1234\",\n  \"confirmPassword\": \"Test@1234\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login Provider",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["const res = pm.response.json();", "if (res.data?.token) { pm.collectionVariables.set('providerToken', res.data.token); pm.collectionVariables.set('token', res.data.token); }"]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"Test@1234\"\n}" },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Admin Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["const res = pm.response.json();", "if (res.data?.token) { pm.collectionVariables.set('adminToken', res.data.token); }"]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin@123456\"\n}" },
+            "url": "{{baseUrl}}/auth/admin/login"
+          }
+        },
+        { "name": "Get Me", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/auth/me" } },
+        { "name": "Google OAuth", "request": { "method": "GET", "url": "{{baseUrl}}/auth/google" } }
+      ]
+    },
+    {
+      "name": "Provider",
+      "item": [
+        { "name": "Get Profile", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }], "url": "{{baseUrl}}/providers/profile" } },
+        { "name": "Update Profile", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"John Provider\",\n  \"phone\": \"9876543210\"\n}" }, "url": "{{baseUrl}}/providers/profile" } },
+        { "name": "Upload Photo", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }], "body": { "mode": "formdata", "formdata": [{ "key": "photo", "type": "file", "src": "" }] }, "url": "{{baseUrl}}/providers/profile/photo" } },
+        { "name": "Upload Document", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }], "body": { "mode": "formdata", "formdata": [{ "key": "document", "type": "file", "src": "" }, { "key": "documentType", "value": "id_proof", "type": "text" }] }, "url": "{{baseUrl}}/providers/documents" } },
+        { "name": "Submit Application", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }], "url": "{{baseUrl}}/providers/application/submit" } },
+        { "name": "Get Application History", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }], "url": "{{baseUrl}}/providers/application/history" } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "List Providers", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/providers?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["admin", "providers"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "10" }, { "key": "search", "value": "", "disabled": true }, { "key": "status", "value": "", "disabled": true }] } } },
+        { "name": "Get Provider", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/providers/:id" } },
+        { "name": "Move to Review", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"under_review\"\n}" }, "url": "{{baseUrl}}/admin/providers/:id/status" } },
+        { "name": "Approve Provider", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/providers/:id/approve" } },
+        { "name": "Reject Provider", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"remarks\": \"Please upload a clearer identity document.\"\n}" }, "url": "{{baseUrl}}/admin/providers/:id/reject" } },
+        { "name": "Get Statistics", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": "{{baseUrl}}/admin/statistics" } }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        { "name": "List Categories", "request": { "method": "GET", "url": "{{baseUrl}}/categories" } },
+        { "name": "Create Category", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"New Category\",\n  \"description\": \"Description\"\n}" }, "url": "{{baseUrl}}/categories" } }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        { "name": "List Notifications", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/notifications" } },
+        { "name": "Mark Read", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/notifications/:id/read" } },
+        { "name": "Mark All Read", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/notifications/read-all" } }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        { "name": "Get Profile Photo", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/uploads/profile/:filename" } },
+        { "name": "Get Document", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/uploads/document/:id" } }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Health Check", "request": { "method": "GET", "url": "{{baseUrl}}/health" } }
+      ]
+    }
+  ]
+}
