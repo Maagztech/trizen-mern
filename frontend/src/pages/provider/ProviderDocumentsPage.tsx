@@ -6,8 +6,7 @@ import { providerApi } from '../../api/provider.api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import AuthImage from '../../components/AuthImage';
-import { viewDocument } from '../../utils/media';
-import { formatDate } from '../../utils/helpers';
+import { formatDate, getProfilePhotoUrl, getDocumentUrl } from '../../utils/helpers';
 import { ProviderProfile } from '../../types';
 
 const docTypes = [
@@ -25,7 +24,6 @@ export default function ProviderDocumentsPage() {
   const [photoProgress, setPhotoProgress] = useState(0);
   const [docProgress, setDocProgress] = useState(0);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
-  const [viewingDoc, setViewingDoc] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['provider-profile'],
@@ -37,6 +35,7 @@ export default function ProviderDocumentsPage() {
 
   const profile = data?.profile as ProviderProfile | undefined;
   const canEdit = ['draft', 'rejected'].includes(profile?.applicationStatus ?? 'draft');
+  const photoUrl = getProfilePhotoUrl(profile?.profilePhoto);
 
   const uploadPhoto = useMutation({
     mutationFn: (file: File) => providerApi.uploadPhoto(file, setPhotoProgress),
@@ -86,8 +85,7 @@ export default function ProviderDocumentsPage() {
         <h2 className="mb-4 text-lg font-semibold">Profile Photo</h2>
         <div className="flex items-center gap-6">
           <AuthImage
-            profilePhoto={profile?.profilePhoto}
-            localPreview={localPreview}
+            src={localPreview || photoUrl}
             alt="Profile"
             className="h-24 w-24 rounded-xl object-cover"
             fallback={
@@ -161,23 +159,14 @@ export default function ProviderDocumentsPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    disabled={viewingDoc === doc._id}
+                  <a
+                    href={getDocumentUrl(doc._id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="btn-secondary text-xs"
-                    onClick={async () => {
-                      setViewingDoc(doc._id);
-                      try {
-                        await viewDocument(doc._id);
-                      } catch {
-                        toast.error('Failed to open document');
-                      } finally {
-                        setViewingDoc(null);
-                      }
-                    }}
                   >
-                    {viewingDoc === doc._id ? 'Opening...' : 'View'}
-                  </button>
+                    View
+                  </a>
                   {canEdit && (
                     <button onClick={() => deleteDoc.mutate(doc._id)} className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
                       <Trash2 className="h-4 w-4" />

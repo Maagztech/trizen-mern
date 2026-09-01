@@ -8,7 +8,7 @@ import { providerApi } from '../../api/provider.api';
 import StatusBadge from '../../components/StatusBadge';
 import { CardSkeleton } from '../../components/EmptyState';
 import AuthImage from '../../components/AuthImage';
-import { formatDate } from '../../utils/helpers';
+import { formatDate, getProfilePhotoUrl } from '../../utils/helpers';
 import { ServiceCategory } from '../../types';
 
 const steps = ['Profile', 'Documents', 'Review', 'Approved'];
@@ -64,6 +64,7 @@ export default function ProviderDashboard() {
   const status = profile?.applicationStatus ?? 'draft';
   const stepIndex = getStepIndex(status);
   const categories = (profile?.serviceCategories ?? []) as ServiceCategory[];
+  const photoUrl = getProfilePhotoUrl(profile?.profilePhoto);
 
   return (
     <div className="space-y-6">
@@ -223,10 +224,10 @@ export default function ProviderDashboard() {
         </div>
       </div>
 
-      {profile?.profilePhoto && (
+      {photoUrl && (
         <div className="card">
           <h3 className="mb-3 font-semibold">Profile Photo</h3>
-          <AuthImage profilePhoto={profile.profilePhoto} alt="Profile" className="h-24 w-24 rounded-xl object-cover" />
+          <AuthImage src={photoUrl} alt="Profile" className="h-24 w-24 rounded-xl object-cover" />
         </div>
       )}
 

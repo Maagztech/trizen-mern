@@ -8,8 +8,7 @@ import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Modal from '../../components/Modal';
 import AuthImage from '../../components/AuthImage';
-import { formatDateTime, getStatusLabel } from '../../utils/helpers';
-import { downloadDocument, viewDocument } from '../../utils/media';
+import { formatDateTime, getProfilePhotoUrl, getDocumentUrl, getStatusLabel } from '../../utils/helpers';
 import { ProviderProfile, ServiceCategory, StatusHistoryItem } from '../../types';
 
 export default function AdminProviderDetailPage() {
@@ -19,7 +18,6 @@ export default function AdminProviderDetailPage() {
   const [rejectOpen, setRejectOpen] = useState(false);
   const [approveOpen, setApproveOpen] = useState(false);
   const [remarks, setRemarks] = useState('');
-  const [docAction, setDocAction] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-provider', id],
@@ -61,6 +59,7 @@ export default function AdminProviderDetailPage() {
   const history = data.history as StatusHistoryItem[];
   const categories = (profile.serviceCategories ?? []) as ServiceCategory[];
   const user = profile.userId as { name?: string; email?: string };
+  const photoUrl = getProfilePhotoUrl(profile.profilePhoto);
   const canReview = ['submitted', 'under_review'].includes(profile.applicationStatus);
 
   return (
@@ -95,7 +94,7 @@ export default function AdminProviderDetailPage() {
         <div className="card space-y-4">
           <h2 className="font-semibold">Personal Information</h2>
           <AuthImage
-            profilePhoto={profile.profilePhoto}
+            src={photoUrl}
             alt="Profile"
             className="h-20 w-20 rounded-xl object-cover"
           />
@@ -143,42 +142,22 @@ export default function AdminProviderDetailPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    title="View"
-                    disabled={docAction === `view-${doc._id}`}
+                  <a
+                    href={getDocumentUrl(doc._id, profile._id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="btn-secondary px-2 py-1 text-xs"
-                    onClick={async () => {
-                      setDocAction(`view-${doc._id}`);
-                      try {
-                        await viewDocument(doc._id, profile._id);
-                      } catch {
-                        toast.error('Failed to open document');
-                      } finally {
-                        setDocAction(null);
-                      }
-                    }}
+                    title="View"
                   >
                     <Eye className="h-3 w-3" />
-                  </button>
-                  <button
-                    type="button"
-                    title="Download"
-                    disabled={docAction === `dl-${doc._id}`}
+                  </a>
+                  <a
+                    href={getDocumentUrl(doc._id, profile._id, true)}
                     className="btn-secondary px-2 py-1 text-xs"
-                    onClick={async () => {
-                      setDocAction(`dl-${doc._id}`);
-                      try {
-                        await downloadDocument(doc._id, doc.fileName, profile._id);
-                      } catch {
-                        toast.error('Failed to download document');
-                      } finally {
-                        setDocAction(null);
-                      }
-                    }}
+                    title="Download"
                   >
                     <Download className="h-3 w-3" />
-                  </button>
+                  </a>
                 </div>
               </div>
             ))}

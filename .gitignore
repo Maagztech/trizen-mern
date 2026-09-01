@@ -34,7 +34,6 @@ coverage/
 
 # Docker
 *.pid
-
-.env
-*.envbackend/.env
+backend/.env
 frontend/.env
+.env
